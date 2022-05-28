@@ -1,14 +1,42 @@
 package Exchange.Main.MatchingEngine;
 
+import Exchange.Main.MessageParser.NaiveMessageParser.Message;
+import Exchange.Main.MessageParser.NaiveMessageParser.MessageParser;
+import Exchange.Main.MessageParser.NaiveMessageParser.MessageType;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OrderMatchingEngine {
     HashMap<BigInteger, OrderBook> OrderBookMap; // <instrumentID, OrderBook>
 
+    AtomicInteger LastOrderID;
+
+    public OrderMatchingEngine() {
+        OrderBookMap = new HashMap<>();
+        LastOrderID = new AtomicInteger(0);
+    }
+
+    public OrderReport processMessage(String MSG){
+        try {
+            Message Msg = MessageParser.ParseMSG(MSG);
+            OrderReport oReport;
+            if (Msg.getType() == MessageType.Add) {
+                Order incomingOrder = new Order(Msg.getoSide(), Msg.getoClass(), Msg.getQuantity(), Msg.getPrice(),
+                        BigInteger.valueOf(LastOrderID.addAndGet(1)), Msg.getInstrumentID(), Msg.getCustomerID());
+                oReport = placeOrder(incomingOrder);
+            } else {
+                cancelOrder(Msg.getOrderID(), Msg.getInstrumentID());
+                oReport = null;
+            }
+            return oReport; // Could be null
+        }
+        catch (Exception ignored){ return null; }
+    }
 
     private OrderBook getOrderBook(BigInteger symbolID) {
         OrderBook orderBook = OrderBookMap.get(symbolID);
@@ -18,7 +46,6 @@ public class OrderMatchingEngine {
         }
         return orderBook;
     }
-
 
     private OrderReport placeOrder(Order order) {
         OrderBook orderBook = getOrderBook(order.getInstrumentID());
