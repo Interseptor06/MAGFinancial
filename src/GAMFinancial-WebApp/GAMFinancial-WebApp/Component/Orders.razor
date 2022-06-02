@@ -1,0 +1,197 @@
+﻿@using GAMFinancial_WebApp.Models
+@using GAMFinancial_WebApp.ViewModels
+@inject OrderBook orderBook
+<div class="orders">
+    <div class="sales">
+        <h3>Asks - @orderBook.SellSide.Count()</h3>
+        <table class="table text-light orders-table table-hover">
+            <thead>
+                <tr class="text-center">
+                    <th>Order Id</th>
+                    <th>Price</th>
+                    <th>Quantiy</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var order in Model.Sales)
+                {
+                    if (order.IsNew)
+                    {
+                        <tr>
+                            <td class = "new-order">@order.OrderID</td>
+                            <td class = "new-order">@order.Price.ToString("0.00")</td>
+                            <td class = "new-order">@order.Quantity</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td class = "old-order">@order.OrderID</td>
+                            <td class = "old-order">@order.Price.ToString("0.00")</td>
+                            <td class = "old-order">@order.Quantity</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="buys">
+        <h3>Bids - @orderBook.BuySide.Count()</h3>
+        <table class="table text-light orders-table table-hover">
+            <thead>
+                <tr class="text-center">
+                    <th>Order Id</th>
+                    <th>Price</th>
+                    <th>Quantiy</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var order in Model.Buys)
+                {
+                    if (order.IsNew)
+                    {
+                        <tr>
+                            <td class = "new-order">@order.OrderID</td>
+                            <td class = "new-order">@order.Price.ToString("0.00")</td>
+                            <td class = "new-order">@order.Quantity</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td class = "old-order">@order.OrderID</td>
+                            <td class = "old-order">@order.Price.ToString("0.00")</td>
+                            <td class = "old-order">@order.Quantity</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@code {
+    public Orders()
+    {
+    }
+
+    [Parameter]
+    public IndexViewModel Model { get; set; }
+
+    private static System.Timers.Timer timer;
+
+    private FileSystemWatcher watcher = new FileSystemWatcher($@"{Environment.CurrentDirectory}\bin\Debug\net6.0\Component");
+
+    protected override void OnInitialized()
+    {
+        watcher.NotifyFilter = NotifyFilters.Attributes
+                                 | NotifyFilters.CreationTime
+                                 | NotifyFilters.DirectoryName
+                                 | NotifyFilters.FileName
+                                 | NotifyFilters.LastAccess
+                                 | NotifyFilters.LastWrite
+                                 | NotifyFilters.Security
+                                 | NotifyFilters.Size;
+
+        watcher.Changed += OnChanged;
+        watcher.Created += OnChanged;
+        watcher.Deleted += OnChanged;
+        watcher.Renamed += OnChanged;
+
+        watcher.Filter = "*.txt";
+        watcher.IncludeSubdirectories = true;
+        watcher.EnableRaisingEvents = true;
+
+        // Create a timer and set a two second interval.
+        // timer = new System.Timers.Timer();
+        // timer.Interval = 1000;
+        // 
+        // // Hook up the Elapsed event for the timer. 
+        // timer.Elapsed += OnTimedEvent;
+        // 
+        // // Have the timer fire repeated events (true is the default)
+        // timer.AutoReset = true;
+        // 
+        // // Start the timer
+        // timer.Enabled = true;
+    }
+
+    private void OnChanged(object sender, FileSystemEventArgs e)
+    {
+        Console.WriteLine($"Changed: {e.FullPath}");
+
+        var messages = System.IO.File.ReadAllText(e.FullPath).Split(Environment.NewLine).ToList();
+        messages.ForEach(x => {
+            var order = MessageParser.ParseMSG(x);
+            orderBook.ProcessLimitOrder(new Order(order.getoSide(),order.getoClass(), order.getQuantity(), order.getPrice(), order.getOrderID(), order.getCustomerID(), order.getInstrumentID(), true));
+        });
+
+        Model.Sales = orderBook.GetTop30Sales()
+                .Select(x => new OrderViewModel
+                {
+                    OrderID = (int)x.OrderID,
+                    Price = x.Price,
+                    Quantity = x.Quantity,
+                    IsNew = x.IsNew,
+                }).ToList();
+
+
+        Model.Buys = orderBook.GetTop30Buys()
+                .Select(x => new OrderViewModel
+                {
+                    OrderID = (int)x.OrderID,
+                    Price = x.Price,
+                    Quantity = x.Quantity,
+                    IsNew = x.IsNew,
+                }).ToList();
+
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private void OnTimedEvent(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        Console.WriteLine("The Elapsed event was raised at {0}", e.SignalTime);
+        Console.WriteLine(orderBook);
+        foreach (var order in orderBook.BuySide)
+        {
+            order.IsNew =  false;
+        }
+        foreach (var order in orderBook.SellSide)
+        {
+            order.IsNew =  false;
+        }
+
+        for (int i = 0; i < 50; i++)
+        {
+            Order order = new Order(OrderSide.Buy, OrderClass.Limit, new Random().Next(100), (decimal)new Random().Next(1000)/100, new Random().Next(int.MaxValue), new Random().Next(int.MaxValue), new Random().Next(int.MaxValue), true);
+            orderBook.ProcessLimitOrder(order);
+            order = new Order(OrderSide.Sell, OrderClass.Limit, new Random().Next(100), (decimal)new Random().Next(2000)/100, new Random().Next(int.MaxValue), new Random().Next(int.MaxValue), new Random().Next(int.MaxValue), true);
+            orderBook.ProcessLimitOrder(order);
+        }
+
+        orderBook.GetTop30Buys().Take(30).ToList().ForEach(x => orderBook.cancelOrder(x.OrderID));
+        orderBook.GetTop30Sales().Take(30).ToList().ForEach(x => orderBook.cancelOrder(x.OrderID));
+
+        Model.Sales = orderBook.GetTop30Sales()
+                .Select(x => new OrderViewModel
+                {
+                    OrderID = (int)x.OrderID,
+                    Price = x.Price,
+                    Quantity = x.Quantity,
+                    IsNew = x.IsNew,
+                }).ToList();
+
+
+        Model.Buys = orderBook.GetTop30Buys()
+                .Select(x => new OrderViewModel
+                {
+                    OrderID = (int)x.OrderID,
+                    Price = x.Price,
+                    Quantity = x.Quantity,
+                    IsNew = x.IsNew,
+                }).ToList();
+
+        InvokeAsync(() => StateHasChanged());
+    }
+}

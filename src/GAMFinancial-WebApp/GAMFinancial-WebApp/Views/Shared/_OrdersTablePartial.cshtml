@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Order>
+
+<table class="table text-light orders-table table-hover">
+    <thead>
+        <tr class="text-center">
+            <th>Order Id</th>
+            <th>Price</th>
+            <th>Quantiy</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var order in Model)
+        {
+            <tr>
+                <td class = "">@order.OrderID</td>
+                <td class = "">@order.Price.ToString("0.00")</td>
+                <td class = "">@order.Quantity</td>
+            </tr>
+        }
+    </tbody>
+</table>

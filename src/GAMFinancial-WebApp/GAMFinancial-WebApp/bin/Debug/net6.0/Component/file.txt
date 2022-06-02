@@ -1,0 +1,4 @@
+﻿Add/Side=Buy/Class=Limit/Quantity=200/Price=20.120/customerID=238972893/instrumentID=231123
+Add/Side=Buy/Class=Limit/Quantity=200/Price=25.120/customerID=238972893/instrumentID=231123
+Add/Side=Buy/Class=Limit/Quantity=200/Price=30.120/customerID=238972893/instrumentID=231123
+Add/Side=Buy/Class=Limit/Quantity=200/Price=33.120/customerID=238972893/instrumentID=231123

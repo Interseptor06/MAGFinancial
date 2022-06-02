@@ -1,0 +1,12 @@
+﻿@using GAMFinancial_WebApp.Component
+@using GAMFinancial_WebApp.ViewModels
+@model IndexViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+@*<component type="typeof(Orders)" params["Model"]="@Model>" render-mode="ServerPrerendered" />*@
+    @(await Html.RenderComponentAsync<Orders>(RenderMode.ServerPrerendered, new { Model }))
+<script>
+    console.log('aaa');
+    console.log('aaa');
+</script>

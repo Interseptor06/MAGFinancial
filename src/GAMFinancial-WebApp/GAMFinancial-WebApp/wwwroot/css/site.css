@@ -1,0 +1,73 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    color: white;
+}
+
+.sales {
+    left: 0;
+    height: 100%;
+    width: 50%;
+}
+
+.sales>table>tbody>tr>.old-order {
+  color:red;
+}
+
+.sales>table>tbody>tr>.new-order {
+  color:red;
+  animation: new-sell 0.5s forwards;
+}
+
+.buys {
+    right: 0;
+    height: 100%;
+    width: 50%;
+}
+
+.orders {
+    margin: auto;
+    text-align: center;
+    display: flex;
+    justify-content: space-around;
+}
+.buys>table>tbody>tr>.old-order {
+  color:green;
+}
+
+.buys>table>tbody>tr>.new-order {
+  color:green;
+  animation: new-buy 0.5s forwards;
+}
+
+@keyframes new-sell {
+  99.9% {
+      background:rgb(206, 107, 107);
+  }
+  100% {
+      background:inherit;
+  }
+}
+
+@keyframes new-buy {
+  99.9% {
+      background-color: rgb(95, 245, 81);
+  }
+  100% {
+      background:inherit;
+  }
+}
