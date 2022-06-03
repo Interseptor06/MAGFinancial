@@ -3,19 +3,33 @@ package Exchange.Main.MatchingEngine;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+/*
+ * O(1) - InsertOrder, DeleteOrder, Matching, getBestBid, getBestAsk
+ * O(logN) - Insert Without Limit
+ */
+
+
+/*
+ *
+ */
 
 public class OrderTree {
-    TreeMap<BigDecimal, Limit> priceTree;
-    HashMap<BigDecimal, Limit> priceMap;
-    HashMap<BigInteger, Order> orderMap;
+    TreeMap<BigDecimal, Limit> priceTree; // <LimitPrice, Limit>
+    HashMap<BigDecimal, Limit> priceMap; // <LimitPrice, Limit>
+    HashMap<BigInteger, Order> orderMap; // <OrderID, Order>
+    /*
+     * Order = orderMap.get()
+     * Limit = Order.getParentLimit()
+     * Limit.cancelOrder(Order)
+     */
     Integer Volume;
     Integer nOrders;
     Integer Depth;
 
-    OrderTree() {
+    public OrderTree() {
         priceTree = new TreeMap<>();
-        priceMap = new HashMap<>();
-        orderMap = new HashMap<>();
+        priceMap = new HashMap<>(10000);
+        orderMap = new HashMap<>(10000);
 
         Volume = 0;
         nOrders = 0;

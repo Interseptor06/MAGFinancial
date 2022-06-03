@@ -1,9 +1,12 @@
 package Exchange.Main.MatchingEngine;
 
+import org.junit.jupiter.api.Test;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+
 
 /*
  * This is basically BuySideOrderTree, SellSideOrderTree + MatchingEngine
@@ -211,6 +214,25 @@ public class OrderBook {
             oReport = processMarketOrder(incomingOrder);
         }
         return oReport;
+    }
+
+    @Test
+    void TestAdd(){
+        Order incomingOrder = new Order(OrderSide.Buy, OrderClass.Limit, 20,
+                BigDecimal.valueOf(200.1), BigInteger.valueOf(1), BigInteger.valueOf(100), BigInteger.valueOf(1));
+        Order incomingOrder_Two = new Order(OrderSide.Buy, OrderClass.Limit, 20,
+                BigDecimal.valueOf(200.1), BigInteger.valueOf(2), BigInteger.valueOf(101), BigInteger.valueOf(1));
+
+        OrderBook orderBook = new OrderBook();
+        orderBook.processOrder(incomingOrder);
+        orderBook.processOrder(incomingOrder_Two);
+        var x = System.nanoTime();
+        orderBook.cancelOrder(incomingOrder.getOrderID());
+        var y = System.nanoTime();
+        orderBook.cancelOrder(incomingOrder_Two.getOrderID());
+        var z = System.nanoTime();
+        System.out.println(y-x);
+        System.out.println(z-y);
     }
 
 }
